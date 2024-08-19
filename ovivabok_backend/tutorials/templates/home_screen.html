@@ -5,6 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ovivabok.com</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Sticky Navbar */
+        .sticky-navbar {
+            position: -webkit-sticky; /* For Safari */
+            position: sticky;
+            top: 0;
+            z-index: 30; /* Ensure it sits above other content */
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #1f2937; /* Dark background for footer */
+            color: #e2e8f0; /* Light text color */
+            border-top: 1px solid #2d3748; /* Subtle border for footer separation */
+        }
+
+        .footer-content {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .footer-content p {
+            margin: 0;
+        }
+
+        /* Mobile Drawer Styles */
+        .drawer {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        /* Show the drawer when active */
+        .drawer-active {
+            transform: translateX(0);
+        }
+        /* Close button styling */
+        .drawer-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+        }
+
+        /* Dropdown Styles */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.375rem;
+            z-index: 40; /* Ensure it sits below the navbar but above other content */
+            width: 200px; /* Optional: set a fixed width */
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+        #drawer {
+        top: 72px; /* Adjust this value as needed */
+    }
+    </style>
 </head>
 <body class="bg-gray-100">
     <!-- Navbar -->
@@ -15,21 +77,81 @@
                     অভিভাবক
                 </h1>
             </a>
-            
-            <nav class="space-x-6">
-                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition duration-300 ease-in-out">Home</a>
-                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition duration-300 ease-in-out">About</a>
-                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition duration-300 ease-in-out">Contact</a>
+
+            <!-- Desktop Navigation -->
+            <nav class="relative hidden lg:flex space-x-6">
+                <!-- Show up to 3 courses directly -->
+                {% for course in courses|slice:":5" %}
+                    <a href="{% url 'tutorial_detail' course.id %}" class="text-gray-600 hover:text-blue-600 font-medium transition duration-300 ease-in-out">
+                        {{ course.course_name }}
+                    </a>
+                {% endfor %}
+
+                <!-- Dropdown for the rest of the courses if there are more than 3 -->
+                {% if courses|length > 5 %}
+                    <div class="relative group dropdown">
+                        <button class="text-gray-600 hover:text-blue-600 font-medium transition duration-300 ease-in-out">
+                            More Courses
+                        </button>
+                        <div id="course-dropdown" class="dropdown-menu bg-white shadow-lg rounded-lg">
+                            <ul class="space-y-2 p-2">
+                                {% for course in courses|slice:"5:" %}
+                                    <li>
+                                        <a href="{% url 'tutorial_detail' course.id %}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100 transition duration-300 ease-in-out">
+                                            {{ course.course_name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
             </nav>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button id="drawer-toggle" class="lg:hidden text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
         </div>
     </header>
+
+    <!-- Mobile Drawer -->
+    
+    <aside id="drawer" class="fixed  left-0 h-full w-3/4 bg-white p-4 shadow-lg z-40 lg:hidden drawer max-h-screen flex flex-col overflow-hidden">
+        <!-- Close Button -->
+        <button id="drawer-close" class="drawer-close text-gray-600 hover:text-gray-900">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <!-- Drawer Content -->
+        <div class="mb-2">
+            <p class="text-gray-600 mr-14">আমাদের উপলব্ধ কোর্সগুলি দেখুন এবং আপনার আগ্রহের অনুযায়ী নির্বাচন করুন।</p>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="mt-2 space-y-4 overflow-auto">
+            {% for course in courses %}
+                <a href="{% url 'tutorial_detail' course.id %}" class="block text-gray-800 hover:bg-gray-100 p-3 rounded-lg transition duration-300 ease-in-out underline">
+                    {{ course.course_name }}
+                </a>
+            {% endfor %}
+        </nav>
+    </aside>
     
 
+    <!-- Overlay -->
+    <div id="drawer-overlay" class="fixed inset-0 z-10 hidden"></div>
+
     <!-- Main Content -->
-    <div class="container mx-auto p-4">
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Courses</h2>
-        <p class="text-lg text-gray-700 mb-6">Explore our range of educational tutorials designed to enhance your learning experience.</p>
-        
+    <div class="container mx-auto p-4 text-center">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">আমাদের কোর্সসমূহ</h2>
+<p class="text-lg text-gray-700 mb-6">OvivaBok.com-এ স্বাগতম! এখানে আপনি কম্পিউটার সায়েন্স এবং গাণিতিক বিজ্ঞানের কিছু ভাল টিউটোরিয়াল পাবেন যা আপনার শিক্ষার অভিজ্ঞতা উন্নত করতে সহায়ক হবে।</p>
+
+
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for course in courses %}
                 <a href="{% url 'tutorial_detail' course.id %}" class="bg-white p-4 shadow-lg rounded-lg block hover:shadow-xl transition-shadow duration-300 ease-in-out">
@@ -39,15 +161,69 @@
                         <img src="https://via.placeholder.com/400x250" alt="{{ course.course_name }}" class="w-full h-48 object-cover rounded-t-lg mb-4">
                     {% endif %}
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ course.course_name }}</h3>
-                        <p class="text-gray-600">{{ course.course_description }}</p>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ course.course_name|slice:":20" }}{% if course.course_name|length > 20 %}...{% endif %}</h3>
+                        <p class="text-gray-600">{{ course.course_description|slice:":100" }}{% if course.course_description|length > 100 %}...{% endif %}</p>
                     </div>
                 </a>
             {% empty %}
-                <p class="text-gray-600">No courses available at the moment.</p>
+                <p class="text-gray-600">এখনো কোনো কোর্স উপলব্ধ নেই।</p>
             {% endfor %}
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-blue-900 text-white py-6">
+        <div class="container mx-auto text-center footer-content">
+            <p class="text-lg font-semibold mb-2">© ২০২৪ অভিভাবক। সর্বস্বত্ব সংরক্ষিত।</p>
+            <p class="text-sm">আমাদের সাথে যোগাযোগ করুন: <a href="mailto:info@ovivabok.com" class="text-blue-300 hover:text-blue-500">info@ovivabok.com</a></p>
+        </div>
+    </footer>
     
+
+    <!-- JavaScript to Toggle Drawer and Dropdown -->
+    <script>
+        // Toggle Drawer
+        const drawerToggle = document.getElementById('drawer-toggle');
+        const drawer = document.getElementById('drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const drawerClose = document.getElementById('drawer-close');
+    
+        // Function to open the drawer
+        function openDrawer() {
+            drawer.classList.add('drawer-active');
+            overlay.classList.remove('hidden');
+            drawerToggle.classList.add('hidden'); // Hide the toggle button when the drawer is open
+        }
+    
+        // Function to close the drawer
+        function closeDrawer() {
+            drawer.classList.remove('drawer-active');
+            overlay.classList.add('hidden');
+            drawerToggle.classList.remove('hidden'); // Show the toggle button when the drawer is closed
+        }
+    
+        drawerToggle.addEventListener('click', openDrawer);
+        drawerClose.addEventListener('click', closeDrawer);
+        overlay.addEventListener('click', closeDrawer);
+    
+        // Dropdown on Hover
+        const dropdownToggle = document.querySelector('.dropdown');
+        const dropdownMenu = document.getElementById('course-dropdown');
+    
+        dropdownToggle.addEventListener('mouseenter', function() {
+            dropdownMenu.classList.add('show');
+        });
+    
+        dropdownToggle.addEventListener('mouseleave', function() {
+            dropdownMenu.classList.remove('show');
+        });
+    
+        // Close dropdown if clicked outside
+        document.addEventListener('click', function(event) {
+            if (!dropdownMenu.contains(event.target) && !dropdownToggle.contains(event.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+    </script>
 </body>
 </html>
