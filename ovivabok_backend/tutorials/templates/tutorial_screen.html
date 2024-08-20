@@ -262,6 +262,9 @@
                     <div class="mt-4">
                         <h3 class="text-xl font-medium text-gray-800">{{ tutorial.tutorial_title }}</h3>
                         <p class="mt-2 text-gray-600">{{ tutorial.tutorial_description|safe }}</p>
+                        <p class="mt-2 text-gray-500">Published on: {{ tutorial.updated_at|date:"F j, Y" }}</p>
+                        <p class="text-gray-500">Author: {{ tutorial.author.username }}</p>
+            </div>
                     </div>
                 </div>
             {% else %}
